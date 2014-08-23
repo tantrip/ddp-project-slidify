@@ -13,7 +13,8 @@
     media="only screen and (max-device-width: 480px)" >
   <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
   <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
-  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/custom.css"></link>
+<link rel=stylesheet href="./assets/css/ribbons.css"></link>
 
   
   <!-- Grab CDN jQuery, fall back to local if offline -->
@@ -48,29 +49,161 @@
   <article data-timings="">
     <h3>Map of major crimes across the United States by selected year</h3>
 
-<h4>This Shiny and rCharts demo shows crime statistics for various US states from 1969 to 2010</h4>
-
 <ul>
-<li>The map will change dynamically based on your selections as detailed below<br>
+<li>This Shiny and rCharts demo shows crime statistics for various US states from 1969 to 2010<br></li>
+<li><p>The map will change dynamically based on your selections as detailed below   </p>
 
 <ul>
 <li>Use the slider to select an year<br></li>
 <li>Select a value from dropdown to change color palette for the map<br></li>
 <li>Select number of breaks to increase or decrease the definition of color palette<br></li>
-<li>Shiny server code will slice the crime dataset for selected year and show the chloropleth map<br></li>
+<li>Shiny server code will slice the crime dataset for selected year and shows the map<br></li>
 <li>Hover on any state on the map to see the number of crimes in that state for the currently selected year<br></li>
 </ul></li>
+<li><p>Please note: This demo has drawn from some of the examples from Ramnath (author of rCharts) with updates and additions</p></li>
 </ul>
 
-<h5>Please note: This demo has drawn from some of the examples from Ramnath (author of rCharts) with updates and additions</h5>
+<h5>The link to slideapps.io to see the project in action is: <a href="http://tantrip.shinyapps.io/ddp-project/">Project Link</a></h5>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="slide-2" style="background:;">
+  <hgroup>
+    <h4>Slidify is a great tool! Here is how it works..</h4>
+  </hgroup>
+  <article data-timings="">
+    <p>The following code block gets executed and will show the plot (using ggplot2) right below the code!</p>
+
+<pre><code class="r">library(ggplot2)
+output &lt;- rnorm(200, 100, 20)
+qplot(output)
+</code></pre>
+
+<pre><code>## stat_bin: binwidth defaulted to range/30. Use &#39;binwidth = x&#39; to adjust this.
+</code></pre>
+
+<p><img src="assets/fig/block2.png" alt="plot of chunk block2"> </p>
 
   </article>
   <!-- Presenter Notes -->
 </slide>
 
 <slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h4>ui.R code for the assignment</h4>
+  </hgroup>
   <article data-timings="">
-    
+    <p>As you can see below, the UI provides a set of controls on the left that allow you to select the year, color scheme and the number of splits in the color scheme.</p>
+
+<pre><code class="r">shinyUI(fluidPage(
+  fluidRow(column(12, &#39;&#39;)),
+  fluidRow(column(12, wellPanel(tags$h4(&quot;Map of major crimes across the United States by selected year&quot;)))),
+  fluidRow(column(3, wellPanel(sliderInput(&quot;year&quot;, tags$b(&quot;Select Year:&quot;), min = 1969, max = 2010, value = 1995, 
+                                           step = 1),
+      tags$br(), tags$br(),
+      selectInput(&quot;pal&quot;, tags$b(&#39;Select Color Palette&#39;), c(&#39;Blues&#39;, &#39;Accent&#39;, &#39;PuRd&#39;, &#39;Purples&#39;, &#39;OrRd&#39;, &#39;Oranges&#39;, &#39;Greys&#39;)),
+      tags$br(), tags$br(),
+      sliderInput(&quot;ncuts&quot;, tags$b(&quot;Select Number of Breaks:&quot;), min = 3, max = 8, value = 7, step = 1),
+      tags$br(), tags$br())),
+    column(8, rCharts::chartOutput(&#39;myplot&#39;, &#39;datamaps&#39;))),
+fluidRow(
+  column(12, wellPanel(tags$h4(&quot;This Shiny and rCharts demo shows crime statistics for various US states from 1969 to 2010&quot;),
+    tags$h5(&quot;The map will change dynamically based on your selections as detailed below&quot;),
+    tags$ul(tags$li(&quot;Use the slider to select an year&quot;),
+      tags$li(&quot;Select a value from dropdown to change color palette for the map&quot;),
+      tags$li(&quot;Select number of breaks to increase or decrease the definition of color palette&quot;),
+      tags$li(&quot;Shiny server code will slice the crime dataset for selected year and show the chloropleth map&quot;),
+      tags$li(&quot;Hover on any state on the map to see the number of crimes in that state for the currently selected year&quot;)
+    ),
+    tags$h5(&quot;Please note: This demo has drawn from some of the examples from Ramnath (author of rCharts) with updates and additions&quot;))))))
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="id" style="background:;">
+  <hgroup>
+    <h4>server.R code for the assignment</h4>
+  </hgroup>
+  <article data-timings="">
+    <p>As you can see this code takes the input values from ui.R and plots a choropleth map with the crime statistics for the selected year, across all US states. The popover shows the actual value for each state along with the state name.</p>
+
+<pre><code class="r">require(rCharts)
+require(rMaps)
+
+shinyServer(function(input, output, session){
+
+  output$myplot = rCharts::renderChart2({ichoropleth(
+    Crime ~ State, 
+    data = subset(violent_crime, Year == input$year),
+    pal = input$pal,
+    ncuts = input$ncuts,
+    geographyConfig=list(popupTemplate=&quot;#!function(geo, data) {
+                                                              return &#39;&lt;div class=\&quot;hoverinfo\&quot;&gt;&lt;strong&gt;&#39;+
+                                                                        geo.properties.name +
+                                                                        &#39;&lt;br&gt;&#39; + 
+                                                                        &#39;Total violent crimes: &#39; + 
+                                                                        data.Crime +
+                                                                        &#39;&lt;/strong&gt;&lt;/div&gt;&#39;;
+                                                              }!#&quot;)
+  )})
+}
+)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h3>Another</h3>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r"># initial setup
+require(rCharts)
+require(reshape2)
+require(PerformanceAnalytics)
+</code></pre>
+
+<pre><code>## Loading required package: PerformanceAnalytics
+## Loading required package: zoo
+## 
+## Attaching package: &#39;zoo&#39;
+## 
+## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric
+## 
+## Loading required package: xts
+## 
+## Attaching package: &#39;PerformanceAnalytics&#39;
+## 
+## The following object is masked from &#39;package:graphics&#39;:
+## 
+##     legend
+</code></pre>
+
+<pre><code class="r">data(edhec)
+
+# nice with Morris that we can do with melt or
+# without
+edhec.df &lt;- data.frame(format(index(edhec), &quot;%Y-%m-%d&quot;), 
+    apply(1 + coredata(edhec), MARGIN = 2, FUN = cumprod), 
+    stringsAsFactors = FALSE)
+colnames(edhec.df) &lt;- c(&quot;date&quot;, gsub(x = colnames(edhec), 
+    pattern = &quot; &quot;, replacement = &quot;&quot;))
+
+m1a &lt;- mPlot(x = &quot;date&quot;, y = colnames(edhec.df)[2:NCOL(edhec.df)], 
+    data = edhec.df, type = &quot;Line&quot;)
+m1a$set(pointSize = 0)
+m1a$set(hideHover = &quot;auto&quot;)
+m1a$print()
+</code></pre>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
@@ -87,8 +220,26 @@
     </li>
     <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=2 title=''>
+        data-slide=2 title='Slidify is a great tool! Here is how it works..'>
          2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='ui.R code for the assignment'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='server.R code for the assignment'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Another'>
+         5
       </a>
     </li>
   </ul>
