@@ -101,32 +101,3 @@ shinyServer(function(input, output, session){
 }
 )
 ```
-
---- .class #id
-
-### Another
-
-``` {r, echo=TRUE, results='hide'}
-# initial setup
-require(rCharts)
-require(reshape2)
-require(PerformanceAnalytics)
-
-data(edhec)
-
-# nice with Morris that we can do with melt or
-# without
-edhec.df <- data.frame(format(index(edhec), "%Y-%m-%d"), 
-    apply(1 + coredata(edhec), MARGIN = 2, FUN = cumprod), 
-    stringsAsFactors = FALSE)
-colnames(edhec.df) <- c("date", gsub(x = colnames(edhec), 
-    pattern = " ", replacement = ""))
-
-m1a <- mPlot(x = "date", y = colnames(edhec.df)[2:NCOL(edhec.df)], 
-    data = edhec.df, type = "Line")
-m1a$set(pointSize = 0)
-m1a$set(hideHover = "auto")
-m1a$print()
-
-```
-
