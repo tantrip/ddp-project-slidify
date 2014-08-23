@@ -158,56 +158,6 @@ shinyServer(function(input, output, session){
   <!-- Presenter Notes -->
 </slide>
 
-<slide class="class" id="id" style="background:;">
-  <hgroup>
-    <h3>Another</h3>
-  </hgroup>
-  <article data-timings="">
-    <pre><code class="r"># initial setup
-require(rCharts)
-require(reshape2)
-require(PerformanceAnalytics)
-</code></pre>
-
-<pre><code>## Loading required package: PerformanceAnalytics
-## Loading required package: zoo
-## 
-## Attaching package: &#39;zoo&#39;
-## 
-## The following objects are masked from &#39;package:base&#39;:
-## 
-##     as.Date, as.Date.numeric
-## 
-## Loading required package: xts
-## 
-## Attaching package: &#39;PerformanceAnalytics&#39;
-## 
-## The following object is masked from &#39;package:graphics&#39;:
-## 
-##     legend
-</code></pre>
-
-<pre><code class="r">data(edhec)
-
-# nice with Morris that we can do with melt or
-# without
-edhec.df &lt;- data.frame(format(index(edhec), &quot;%Y-%m-%d&quot;), 
-    apply(1 + coredata(edhec), MARGIN = 2, FUN = cumprod), 
-    stringsAsFactors = FALSE)
-colnames(edhec.df) &lt;- c(&quot;date&quot;, gsub(x = colnames(edhec), 
-    pattern = &quot; &quot;, replacement = &quot;&quot;))
-
-m1a &lt;- mPlot(x = &quot;date&quot;, y = colnames(edhec.df)[2:NCOL(edhec.df)], 
-    data = edhec.df, type = &quot;Line&quot;)
-m1a$set(pointSize = 0)
-m1a$set(hideHover = &quot;auto&quot;)
-m1a$print()
-</code></pre>
-
-  </article>
-  <!-- Presenter Notes -->
-</slide>
-
     <slide class="backdrop"></slide>
   </slides>
   <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
@@ -234,12 +184,6 @@ m1a$print()
       <a href="#" target="_self" rel='tooltip' 
         data-slide=4 title='server.R code for the assignment'>
          4
-      </a>
-    </li>
-    <li>
-      <a href="#" target="_self" rel='tooltip' 
-        data-slide=5 title='Another'>
-         5
       </a>
     </li>
   </ul>
